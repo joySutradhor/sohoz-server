@@ -27,11 +27,18 @@ async function run() {
     // await client.connect();
     const database = client.db("sohozDatabase") ;
     const infoCollection = database.collection("officeInfo") ;
+    const cylindersCollection = database.collection("cylinders")
 
     app.get("/info" ,async ( req, res ) => {
       const data = infoCollection.find();
       const result = await data.toArray();
       res.send(result)
+    })
+
+    app.get("/cylinders" , async(req, res) => {
+      const cylinder = cylindersCollection.find() ;
+      const allCylinders = await cylinder.toArray() ;
+      res.send(allCylinders)
     })
 
 
