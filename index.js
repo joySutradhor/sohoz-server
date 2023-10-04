@@ -28,6 +28,7 @@ async function run() {
     const database = client.db("sohozDatabase") ;
     const infoCollection = database.collection("officeInfo") ;
     const cylindersCollection = database.collection("cylinders")
+    const usersCollection = database.collection("users")
 
     app.get("/info" ,async ( req, res ) => {
       const data = infoCollection.find();
@@ -39,6 +40,25 @@ async function run() {
       const cylinder = cylindersCollection.find() ;
       const allCylinders = await cylinder.toArray() ;
       res.send(allCylinders)
+    })
+    app.get("/users" , async(req, res) => {
+      const user = usersCollection.find() ;
+      const allUsers = await user.toArray() ;
+      res.send(allUsers)
+    })
+
+
+    // register post method 
+
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      const quary = { email: user.email };
+      const existUser = await usersCollection.findOne(quary);
+      if (existUser) {
+        return res.send({ message: "already have user" })
+      }
+      const result = await usersCollection.insertOne(user);
+      res.send(result)
     })
 
 
