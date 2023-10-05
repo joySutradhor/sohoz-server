@@ -30,26 +30,49 @@ async function run() {
     const cylindersCollection = database.collection("cylinders")
     const usersCollection = database.collection("users")
 
+    // office information 
     app.get("/info" ,async ( req, res ) => {
       const data = infoCollection.find();
       const result = await data.toArray();
       res.send(result)
     })
 
+
+    // get all cyliners 
     app.get("/cylinders" , async(req, res) => {
       const cylinder = cylindersCollection.find() ;
       const allCylinders = await cylinder.toArray() ;
       res.send(allCylinders)
     })
+
+    // get all users from database
     app.get("/users" , async(req, res) => {
       const user = usersCollection.find() ;
       const allUsers = await user.toArray() ;
       res.send(allUsers)
     })
-
+   
+    // get data for conditonal dashboard 
+    app.get("/users/role/:email" , async ( req , res ) => {
+      const email = req.params.email ;
+      const quary = {email : email} ;
+      const user = await usersCollection.findOne(quary) ;
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      let role;
+      if (user.role === "admin") {
+        role = "admin";
+      } else if (user.role === "instructor") {
+        role = "instructor";
+      } else {
+        role = "user";
+      }
+      res.json({ email: email, role: role });
+    })
+    console.log("end")
 
     // register post method 
-
     app.post("/users", async (req, res) => {
       const user = req.body;
       const quary = { email: user.email };
@@ -60,6 +83,7 @@ async function run() {
       const result = await usersCollection.insertOne(user);
       res.send(result)
     })
+
 
 
 
