@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json()) ;
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = "mongodb+srv://sohozDream:myDreamProject2024@cluster0.40yptof.mongodb.net/?retryWrites=true&w=majority";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -84,7 +84,31 @@ async function run() {
       res.send(result)
     })
 
+    // update role for admin and manager 
 
+    app.patch("/users/admin/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          role: 'admin'
+        },
+      };
+      const result = await usersCollection.updateOne(filter, updateDoc);
+      res.send(result)
+    })
+
+    app.patch("/users/manager/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          role: 'manager'
+        },
+      };
+      const result = await usersCollection.updateOne(filter, updateDoc);
+      res.send(result)
+    })
 
 
 
@@ -115,3 +139,4 @@ app.get('/' , (req, res ) => {
 app.listen(port , () => {
     console.log(`my port is running ${port}`)
 })
+
