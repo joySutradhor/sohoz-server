@@ -71,6 +71,7 @@ async function run() {
       res.json({ email: email, role: role });
     })
     console.log("end")
+    console.log("ok")
 
     // register post method 
     app.post("/users", async (req, res) => {
@@ -110,7 +111,15 @@ async function run() {
       res.send(result)
     })
 
+    // user Delete operation 
 
+    app.delete("/users/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id)
+      const query = { _id: new ObjectId(id) };
+      const result = await usersCollection.deleteOne(query);
+      res.send(result)
+    })
 
 
 
