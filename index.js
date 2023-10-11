@@ -27,8 +27,10 @@ async function run() {
     // await client.connect();
     const database = client.db("sohozDatabase") ;
     const infoCollection = database.collection("officeInfo") ;
-    const cylindersCollection = database.collection("cylinders")
-    const usersCollection = database.collection("users")
+    const cylindersCollection = database.collection("cylinders");
+    const usersCollection = database.collection("users") ;
+    const collectDataCollection = database.collection("collectData") ;
+    const temporaryNewCustomerCollection = database.collection("temporaryNewCustomer") ;
 
     // office information 
     app.get("/info" ,async ( req, res ) => {
@@ -84,6 +86,41 @@ async function run() {
       const result = await usersCollection.insertOne(user);
       res.send(result)
     })
+
+    // collected data Post method
+
+    app.post("/collectData", async (req, res) => {
+      const user = req.body;
+      console.log(user)
+      const quary = { phone: user.phone };
+      const existUser = await collectDataCollection.findOne(quary);
+      if (existUser) {
+        return res.send({ message: "already have user" })
+      }
+      const result = await collectDataCollection.insertOne(user);
+      res.send(result)
+    })
+
+    // post temporaryNewCustomer from dalim 
+
+    app.post("/temporaryNewCustomer", async (req, res) => {
+      const user = req.body;
+      console.log(user)
+      const quary = { userId: user.userId };
+      const existUser = await temporaryNewCustomerCollection.findOne(quary);
+      if (existUser) {
+        return res.send({ message: "already have user" })
+      }
+      const result = await temporaryNewCustomerCollection.insertOne(user);
+      res.send(result)
+    })
+
+
+
+
+
+
+
 
     // update role for admin and manager 
 
