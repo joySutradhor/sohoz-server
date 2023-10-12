@@ -46,6 +46,19 @@ async function run() {
       const allCylinders = await cylinder.toArray() ;
       res.send(allCylinders)
     })
+    // get all temporaryNewCustomer for rider 
+    // app.get("/temporaryNewCustomer" , async(req, res) => {
+    //   const temporaryNewCustomerData = temporaryNewCustomerCollection.find() ;
+    //   const allTemporaryNewCustomerData = await temporaryNewCustomerData.toArray() ;
+    //   res.send(allTemporaryNewCustomerData)
+    // })
+    app.get('/temporaryNewCustomer/:orderId', async (req, res) => {
+      const orderId = parseInt(req.params.orderId);
+      const query = { orderId };
+      const existUser = await temporaryNewCustomerCollection.findOne(query);
+  
+      res.json({ exists: !!existUser });
+  });
 
     // get all users from database
     app.get("/users" , async(req, res) => {
@@ -106,7 +119,7 @@ async function run() {
     app.post("/temporaryNewCustomer", async (req, res) => {
       const user = req.body;
       console.log(user)
-      const quary = { userId: user.userId };
+      const quary = { orderId: user.orderId };
       const existUser = await temporaryNewCustomerCollection.findOne(quary);
       if (existUser) {
         return res.send({ message: "already have user" })
