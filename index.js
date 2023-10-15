@@ -31,6 +31,7 @@ async function run() {
     const usersCollection = database.collection("users") ;
     const collectDataCollection = database.collection("collectData") ;
     const temporaryNewCustomerCollection = database.collection("temporaryNewCustomer") ;
+    const completerOrderDataCollection = database.collection("completerOrderData") ;
 
     // office information 
     app.get("/info" ,async ( req, res ) => {
@@ -39,6 +40,7 @@ async function run() {
       res.send(result)
     })
 
+  
 
     // get all cyliners 
     app.get("/cylinders" , async(req, res) => {
@@ -46,19 +48,48 @@ async function run() {
       const allCylinders = await cylinder.toArray() ;
       res.send(allCylinders)
     })
-    // get all temporaryNewCustomer for rider 
-    // app.get("/temporaryNewCustomer" , async(req, res) => {
-    //   const temporaryNewCustomerData = temporaryNewCustomerCollection.find() ;
-    //   const allTemporaryNewCustomerData = await temporaryNewCustomerData.toArray() ;
-    //   res.send(allTemporaryNewCustomerData)
-    // })
+    app.get("/temporaryNewCustomer" , async(req, res) => {
+      const submitTemporayNewcustomer = temporaryNewCustomerCollection.find() ;
+      const allTemporaryCustomer = await submitTemporayNewcustomer.toArray() ;
+      res.send(allTemporaryCustomer)
+    })
+    // get all  temporaryNewCustomer for rider 
+    app.get("/temporaryNewCustomer/:status", async (req, res) => {
+      try {
+        const status = req.params.status;
+        console.log(status);
+        const query = { status };
+        const statusData = await temporaryNewCustomerCollection.find(query).toArray();
+        res.send(statusData);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        res.status(500).send("An error occurred while fetching data.");
+      }
+    });
+
+
+  // // not work when status code run 
+
+  //     app.get('/temporaryNewCustomer/:orderId', async (req, res) => {
+  //     const orderId = (req.params.orderId);
+  //     console.log(orderId)
+  //     // console.log('Request for orderId:', orderId);
+  //     const query = { orderId };
+  //     const riderOrderId = await temporaryNewCustomerCollection.findOne(query);
+  //     console.log(riderOrderId)
+  //     res.send(riderOrderId)
+
+  // });
+
+    // check order id is exits or not .
     app.get('/temporaryNewCustomer/:orderId', async (req, res) => {
       const orderId = parseInt(req.params.orderId);
+      // console.log('Request for orderId:', orderId);
       const query = { orderId };
       const existUser = await temporaryNewCustomerCollection.findOne(query);
-  
       res.json({ exists: !!existUser });
   });
+
 
     // get all users from database
     app.get("/users" , async(req, res) => {
@@ -86,7 +117,6 @@ async function run() {
       res.json({ email: email, role: role });
     })
     console.log("end")
-    console.log("ok")
 
     // register post method 
     app.post("/users", async (req, res) => {
@@ -114,6 +144,8 @@ async function run() {
       res.send(result)
     })
 
+
+
     // post temporaryNewCustomer from dalim 
 
     app.post("/temporaryNewCustomer", async (req, res) => {
@@ -129,11 +161,50 @@ async function run() {
     })
 
 
+    // post completerOrderData from rider 
+
+    app.post("/completerOrderData", async (req, res) => {
+      const user = req.body;
+      console.log(user)
+      const quary = { orderId: user.orderId };
+      const existUser = await completerOrderDataCollection.findOne(quary);
+      if (existUser) {
+        return res.send({ message: "already order completed" })
+      }
+      const result = await completerOrderDataCollection.insertOne(user);
+      res.send(result)
+    })
 
 
+    // update rider orders progess state
+   
+  app.patch("/temporaryNewCustomer/progress/:id", async (req, res) => {
+    const id = req.params.id;
+    const filter = {  _id: new ObjectId(id) };
+    console.log(filter)
+    const updateDoc = {
+      $set: {
+        status: 'progress'
+      },
+    };
+    const result = await temporaryNewCustomerCollection.updateOne(filter, updateDoc);
+    res.send(result)
+  })
 
-
-
+    // update rider orders completed state
+   
+  app.patch("/temporaryNewCustomer/completed/:id", async (req, res) => {
+    const id = req.params.id;
+    const filter = {  _id: new ObjectId(id) };
+    console.log(filter)
+    const updateDoc = {
+      $set: {
+        status: 'completed'
+      },
+    };
+    const result = await temporaryNewCustomerCollection.updateOne(filter, updateDoc);
+    res.send(result)
+  })
 
     // update role for admin and manager 
 
