@@ -123,15 +123,15 @@ async function run() {
   
   app.get("/temporaryNewCustomer/progress", async (req, res) => {
     const email = req.query.email; // Retrieve the email from the query parameters
-    const status = "progress"; // Define the desired status
+    // const status = "progress"; // Define the desired status
 
-    const filter = {
-        email: email, // Filter by email
-        status: status, // Filter by status
-    };
+    // const filter = {
+    //     email: email, // Filter by email
+    //     status: status, // Filter by status
+    // };
 
     try {
-        const results = await temporaryNewCustomerCollection.find(filter).toArray();
+        const results = await temporaryNewCustomerCollection.find({email});
         res.json(results);
     } catch (error) {
         console.error(error);
