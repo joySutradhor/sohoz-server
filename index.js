@@ -52,7 +52,106 @@ async function run() {
       res.send(allCylinders)
     })
 
-    // get six userIds for showing admin panel to find out last id 
+    // // get all complete order 
+
+    // app.get("/completerOrderData", async (req, res) => {
+    //   const orderData = completerOrderDataCollection.find();
+    //   const allOrderData = await orderData.toArray();
+    //   res.send(allOrderData)
+    // })
+
+// okkk
+
+    app.get('/completerOrderData', async (req, res) => {
+      try {
+        console.log("line 64");
+    
+        // Aggregate the data to group and sum "dillerPrice" and "profit" by "dilerPoint",
+        // count completed orders by "doneBy," and calculate the sum of total profit for each "doneBy"
+        // Also calculate the sum of quantity for each dilerPoint's brandData
+        const pipeline = [
+          {
+            $group: {
+              _id: {
+                dilerPoint: "$dilerPoint",
+                doneBy: "$doneBy",
+                payment: "$payment"
+              },
+              totalDillerPrice: { $sum: { $toDouble: "$dillerPrice" } },
+              totalsellerPrice: { $sum: { $toDouble: "$sellerPrice" } },
+              totalProfit: { $sum: { $toDouble: "$profit" } },
+              completedOrders: { $sum: 1 },
+              brandData: { $push: { brandName: "$brandName", quantity: "$quantity" } }
+            }
+          },
+          {
+            $group: {
+              _id: {
+                doneBy: "$_id.doneBy",
+                payment: "$_id.payment"
+              },
+              doneByTotalProfit: { $sum: "$totalProfit" },
+              totalCompletedOrders: { $sum: "$completedOrders" },
+              dilerPointData: {
+                $push: {
+                  dilerPoint: "$_id.dilerPoint",
+                  doneBy: "$_id.doneBy",
+                  payment: "$_id.payment",
+                  totalDillerPrice: "$totalDillerPrice",
+                  totalsellerPrice: "$totalsellerPrice",
+                  completedOrders: "$completedOrders",
+                  totalProfit: "$totalProfit",
+                  brandData: "$brandData"
+                }
+              }
+            }
+          },
+          {
+            $group: {
+              _id: "$_id.doneBy",
+              payments: {
+                $push: {
+                  paymentType: "$_id.payment",
+                  totalProfit: "$doneByTotalProfit",
+                  completedOrders: "$totalCompletedOrders",
+                  dilerPointData: "$dilerPointData"
+                }
+              }
+            }
+          }
+        ];
+    
+        const summeryData = await completerOrderDataCollection.aggregate(pipeline).toArray();
+    
+        // Continue with other operations...
+    
+        res.json({ summeryData });
+      } catch (error) {
+        console.error("Error fetching data: " + error);
+        res.status(500).send("Error fetching data");
+      }
+    });
+    
+    
+    
+    
+    
+    
+    
+    
+
+
+    
+    
+
+ 
+
+    
+    
+    
+    
+    
+    
     app.get("/lastSixUserIds", async (req, res) => {
       try {
         const customerData = await CustomerDataSohozDjrCollection.find()
@@ -163,7 +262,7 @@ async function run() {
         role = "admin";
       } else if (user.role === "manager") {
         role = "manager";
-      } else if(user.role === "rider") {
+      } else if (user.role === "rider") {
         role = "rider"
       } else {
         role = "user";
@@ -199,8 +298,8 @@ async function run() {
     })
 
     // post method for all cost details 
-    app.post ("/costDetailsSohozDjr" , async (req , res ) => {
-      const costDetail = req.body ;
+    app.post("/costDetailsSohozDjr", async (req, res) => {
+      const costDetail = req.body;
       const result = await costDetailsCollection.insertOne(costDetail);
       res.send(result)
     })
