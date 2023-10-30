@@ -35,6 +35,7 @@ async function run() {
     const CustomerDataSohozDjrCollection = database.collection("customerDataSohozDjr");
     const upcommingProductsCollection = database.collection("upcoming");
     const costDetailsCollection = database.collection("costDetailsSohozDjr")
+    const riderLocationCollection = database.collection("riderLocationSohozDjr")
 
     // office information 
     app.get("/info", async (req, res) => {
@@ -52,16 +53,24 @@ async function run() {
       res.send(allCylinders)
     })
 
-    // // get all complete order 
+    // get all cost details 
+    app.get("/costDetailsSohozDjr", async (req, res) => {
+      const costDetials = costDetailsCollection.find();
+      const allcostDetials = await costDetials.toArray();
+    
+      // Calculate the sum of totalCost values
+      const totalCostSum = allcostDetials.reduce((acc, item) => acc + item.totalCost, 0);
+    
+      res.send({ totalCostSum });
+    });
+    
+    app.get("/riderLocationSohozDjr", async (req, res) => {
+      const location = riderLocationCollection.find();
+      const singleLocation = await location.toArray();
+      res.send(singleLocation)
+    })
 
-    // app.get("/completerOrderData", async (req, res) => {
-    //   const orderData = completerOrderDataCollection.find();
-    //   const allOrderData = await orderData.toArray();
-    //   res.send(allOrderData)
-    // })
-
-// okkk
-
+    // // get all complete order
     app.get('/completerOrderData', async (req, res) => {
       try {
         console.log("line 64");
@@ -131,25 +140,6 @@ async function run() {
         res.status(500).send("Error fetching data");
       }
     });
-    
-    
-    
-    
-    
-    
-    
-    
-
-
-    
-    
-
- 
-
-    
-    
-    
-    
     
     
     app.get("/lastSixUserIds", async (req, res) => {
@@ -304,6 +294,59 @@ async function run() {
       res.send(result)
     })
 
+    // app.post("/riderLocationSohozDjr", async (req, res) => {
+    //   const user = req.body;
+    //   const query = { yourCode: user.yourCode };
+    //   const existUser = await riderLocationCollection.findOne(query);
+    
+    //   if (existUser) {
+    //     // Update the existing user's data with the new location
+    //     const updateResult = await riderLocationCollection.updateOne(query, { $set: { location: user.location } });
+    
+    //     if (updateResult.modifiedCount === 1) {
+    //       res.send({ message: "Location updated successfully" });
+    //     } else {
+    //       res.status(500).send({ error: "Failed to update location" });
+    //     }
+    //   } else {
+    //     // Insert a new customer record
+    //     const result = await riderLocationCollection.insertOne(user);
+    
+    //     if (result.insertedCount === 1) {
+    //       res.send({ message: "Customer data inserted successfully" });
+    //     } else {
+    //       res.status(500).send({ error: "Failed to insert customer data" });
+    //     }
+    //   }
+    // });
+    app.post("/riderLocationSohozDjr", async (req, res) => {
+      const user = req.body;
+      const query = { yourCode: user.yourCode };
+      const existUser = await riderLocationCollection.findOne(query);
+  
+      if (existUser) {
+        // Update the existing user's data with the new location
+        const updateResult = await riderLocationCollection.updateOne(query, { $set: { location: user.location } });
+  
+        if (updateResult.modifiedCount === 1) {
+          res.status(200).json({ message: "Location updated successfully" });
+        } else {
+          res.status(500).json({ error: "Failed to update location" });
+        }
+      } else {
+        // Insert a new customer record
+        const result = await riderLocationCollection.insertOne(user);
+  
+        if (result.insertedCount === 1) {
+          res.status(200).json({ message: "Customer data inserted successfully" });
+        } else {
+          res.status(500).json({ error: "Failed to insert customer data" });
+        }
+      }
+    });
+    
+    
+    
 
 
     // post temporaryNewCustomer from dalim 
@@ -334,11 +377,10 @@ async function run() {
       const result = await completerOrderDataCollection.insertOne(user);
       res.send(result)
     })
-    // post CustomerData from admin panel 
 
+    // post CustomerData from admin panel 
     app.post("/customerDataSohozDjr", async (req, res) => {
       const user = req.body;
-      console.log(user);
       const query = { userId: user.userId };
       const existUser = await CustomerDataSohozDjrCollection.findOne(query);
       if (existUser) {
@@ -417,6 +459,9 @@ async function run() {
       const result = await usersCollection.updateOne(filter, updateDoc);
       res.send(result)
     })
+    // patch method for all cost details 
+    
+
 
     // put operation for accept order and set rider id 
 
@@ -459,10 +504,6 @@ async function run() {
   }
 }
 run().catch(console.dir);
-
-
-
-
 
 
 app.get('/', (req, res) => {
