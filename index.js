@@ -57,13 +57,13 @@ async function run() {
     app.get("/costDetailsSohozDjr", async (req, res) => {
       const costDetials = costDetailsCollection.find();
       const allcostDetials = await costDetials.toArray();
-    
+
       // Calculate the sum of totalCost values
       const totalCostSum = allcostDetials.reduce((acc, item) => acc + item.totalCost, 0);
-    
+
       res.send({ totalCostSum });
     });
-    
+
     app.get("/riderLocationSohozDjr", async (req, res) => {
       const location = riderLocationCollection.find();
       const singleLocation = await location.toArray();
@@ -74,7 +74,7 @@ async function run() {
     app.get('/completerOrderData', async (req, res) => {
       try {
         console.log("line 64");
-    
+
         // Aggregate the data to group and sum "dillerPrice" and "profit" by "dilerPoint",
         // count completed orders by "doneBy," and calculate the sum of total profit for each "doneBy"
         // Also calculate the sum of quantity for each dilerPoint's brandData
@@ -129,19 +129,16 @@ async function run() {
             }
           }
         ];
-    
+
         const summeryData = await completerOrderDataCollection.aggregate(pipeline).toArray();
-    
-        // Continue with other operations...
-    
         res.json({ summeryData });
       } catch (error) {
         console.error("Error fetching data: " + error);
         res.status(500).send("Error fetching data");
       }
     });
-    
-    
+
+    // show only last six data 
     app.get("/lastSixUserIds", async (req, res) => {
       try {
         const customerData = await CustomerDataSohozDjrCollection.find()
@@ -156,9 +153,27 @@ async function run() {
       }
     });
 
+    // Create an endpoint to get the count of completed orders
+    app.get('/completedOrdersCount', async(req, res) => {
+      const pipeline = [
+        {
+          $match: { status: 'pending' }
+        },
+        {
+          $group: {
+            _id: null,
+            count: { $sum: 1 }
+          }
+        }
+      ];
+      const result = await temporaryNewCustomerCollection.aggregate(pipeline).toArray();
+      const count = result.length > 0 ? result[0].count : 0;
+      res.json({ completedOrdersCount: count });
+    });
 
 
 
+    //  temporary new customer order post
     app.get("/temporaryNewCustomer", async (req, res) => {
       const submitTemporayNewcustomer = temporaryNewCustomerCollection.find();
       const allTemporaryCustomer = await submitTemporayNewcustomer.toArray();
@@ -294,60 +309,6 @@ async function run() {
       res.send(result)
     })
 
-    // app.post("/riderLocationSohozDjr", async (req, res) => {
-    //   const user = req.body;
-    //   const query = { yourCode: user.yourCode };
-    //   const existUser = await riderLocationCollection.findOne(query);
-    
-    //   if (existUser) {
-    //     // Update the existing user's data with the new location
-    //     const updateResult = await riderLocationCollection.updateOne(query, { $set: { location: user.location } });
-    
-    //     if (updateResult.modifiedCount === 1) {
-    //       res.send({ message: "Location updated successfully" });
-    //     } else {
-    //       res.status(500).send({ error: "Failed to update location" });
-    //     }
-    //   } else {
-    //     // Insert a new customer record
-    //     const result = await riderLocationCollection.insertOne(user);
-    
-    //     if (result.insertedCount === 1) {
-    //       res.send({ message: "Customer data inserted successfully" });
-    //     } else {
-    //       res.status(500).send({ error: "Failed to insert customer data" });
-    //     }
-    //   }
-    // });
-    app.post("/riderLocationSohozDjr", async (req, res) => {
-      const user = req.body;
-      const query = { yourCode: user.yourCode };
-      const existUser = await riderLocationCollection.findOne(query);
-  
-      if (existUser) {
-        // Update the existing user's data with the new location
-        const updateResult = await riderLocationCollection.updateOne(query, { $set: { location: user.location } });
-  
-        if (updateResult.modifiedCount === 1) {
-          res.status(200).json({ message: "Location updated successfully" });
-        } else {
-          res.status(500).json({ error: "Failed to update location" });
-        }
-      } else {
-        // Insert a new customer record
-        const result = await riderLocationCollection.insertOne(user);
-  
-        if (result.insertedCount === 1) {
-          res.status(200).json({ message: "Customer data inserted successfully" });
-        } else {
-          res.status(500).json({ error: "Failed to insert customer data" });
-        }
-      }
-    });
-    
-    
-    
-
 
     // post temporaryNewCustomer from dalim 
 
@@ -460,7 +421,7 @@ async function run() {
       res.send(result)
     })
     // patch method for all cost details 
-    
+
 
 
     // put operation for accept order and set rider id 
